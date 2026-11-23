@@ -4,7 +4,5 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
-# 封存測試集不進 repo
-eval/test/
 # 建好的索引可重建，不進 repo
 index/

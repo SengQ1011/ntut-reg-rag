@@ -12,7 +12,7 @@
 - 不要改寫條文原文；Chunk.text 必須和原始檔一致。
 - 任何新函式都要有 pytest，測試用 tests/fixtures 的假資料，不要連網、不要呼叫 LLM。
 - 假資料的 doc_id 一律以 `fake-` 開頭，不要混進 data/。
-- 不要讀取或依賴 eval/test（封存測試集）。
+- eval/holdout.jsonl 是最後對照用的 10–20 題，調參時不要拿它的分數來改系統。
 - 不要把 API key 寫進程式，一律讀環境變數（.env 已在 .gitignore）。
 - 交付前執行：uv run ruff check . && uv run ruff format . && uv run pytest
 
