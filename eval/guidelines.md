@@ -19,6 +19,8 @@ dev set 在 11/26 凍結（tag `dev-v1`），之後才開始調參。先出題�
 
 格式見 `tests/fixtures/dev.jsonl`（欄位定義在 `src/regrag/schemas.py` 的 `DevQuery`）。
 
+`qtype` 欄位對應上表題型：直接問 `direct`／口語問法 `colloquial`／要兩條以上 `multi`／版本相關 `version`／無解 `unanswerable`。無解題的 `answerable` 必須是 false，其他題型必須是 true。
+
 ## 標註（qrels）
 
 | 分數 | 意義 | 判斷方式 |

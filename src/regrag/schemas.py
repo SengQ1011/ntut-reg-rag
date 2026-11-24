@@ -10,10 +10,16 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, ConfigDict, HttpUrl, model_validator
 
 
-class Chunk(BaseModel):
+class _Contract(BaseModel):
+    """所有合約型別的基底。JSON 多出不認識的欄位（例如拼錯字）直接報錯，不會默默丟掉。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class Chunk(_Contract):
     """① 產出，一條條文 = 一個 chunk。附表、附件 MVP 不收。"""
 
     # "{doc_id}#art{n}"。n 一律用阿拉伯數字，「之一」寫成 -1：
@@ -37,7 +43,7 @@ class Chunk(BaseModel):
     raw_sha256: str
 
 
-class Hit(BaseModel):
+class Hit(_Contract):
     """② 產出的單筆檢索結果。"""
 
     chunk_id: str  # 等於 chunk.chunk_id；④ 輸出 TREC run 檔用
@@ -49,7 +55,7 @@ class Hit(BaseModel):
     chunk: Chunk
 
 
-class RetrievalResult(BaseModel):
+class RetrievalResult(_Contract):
     """② search() 的回傳值。"""
 
     query: str  # 原樣回傳呼叫端給的查詢字串
@@ -62,20 +68,25 @@ class RetrievalResult(BaseModel):
     latency_ms: float
 
 
-class Citation(BaseModel):
-    chunk_id: str
+class Citation(_Contract):
+    """③ 產出的單筆引用。欄位由 ③ 從對應的 hit.chunk 複製，讓網頁不用回頭翻 hits。"""
+
+    chunk_id: str  # 必須出現在同一個 Answer 的 retrieval.hits 裡（引用只能來自檢索結果）
     doc_title: str
     article_no: str
     source_url: HttpUrl
 
 
-class Answer(BaseModel):
+class Answer(_Contract):
     """③ answer() 的回傳值，也是 request log 每一行的內容。"""
 
     query: str
-    answer: str
+    answer: str  # 給使用者看的回答；拒答時放向使用者說明查無規定的文字
     citations: list[Citation]
-    refused: bool  # True = 查無相關規定
+    # True 只代表「校規裡查無相關規定」。LLM 逾時、輸出解析失敗等系統錯誤一律丟例外，
+    # 不可標成 refused，否則拒答率會被灌水。
+    # refused=True 時 citations 必須為空；refused=False 時至少要有一筆引用（下方會檢查）。
+    refused: bool
     model: str  # "qwen3:8b"、"gemini-..."
     retrieval: RetrievalResult  # 這次回答用的檢索結果，原樣保留
     # 量 answer() 端到端：從函式被呼叫到回傳，單位毫秒。
@@ -83,11 +94,30 @@ class Answer(BaseModel):
     # 不含 FastAPI／網頁的傳輸時間。kickoff「300 token 回答 20 秒內」的門檻就是看這個值。
     latency_ms: float
 
+    @model_validator(mode="after")
+    def _refused_matches_citations(self) -> "Answer":
+        if self.refused and self.citations:
+            raise ValueError("refused=True 時 citations 必須為空")
+        if not self.refused and not self.citations:
+            raise ValueError("refused=False 時至少要有一筆引用")
+        return self
 
-class DevQuery(BaseModel):  # ④ 管理
-    qid: str  # "dev-001"
-    query: str
-    author: str
-    source: Literal["self", "faq", "forum"]
+
+class DevQuery(_Contract):
+    """④ 管理的評估題目（dev set／holdout）。出題規則見 eval/guidelines.md。"""
+
+    qid: str  # ④ 編號，例如 "dev-001"。凍結後不可改號，qrels 與 run 檔都靠它對應
+    query: str  # 出題者寫的原句，凍結後不改字
+    author: str  # 出題者，雙人標註時用來找人
+    source: Literal["self", "faq", "forum"]  # dev set 都是 self；faq／forum 給 holdout 用
+    # 題型，對應 guidelines 的五種：直接問／口語問法／要兩條以上／版本相關／無解
+    qtype: Literal["direct", "colloquial", "multi", "version", "unanswerable"]
+    # false = 校規沒有規定、應拒答，qrels 裡不能有這題。必須和 qtype 一致（下方會檢查）
     answerable: bool
-    note: str = ""
+    note: str = ""  # 選填，例如標註時的爭議
+
+    @model_validator(mode="after")
+    def _answerable_matches_qtype(self) -> "DevQuery":
+        if self.answerable == (self.qtype == "unanswerable"):
+            raise ValueError("answerable=False 若且唯若 qtype='unanswerable'")
+        return self
