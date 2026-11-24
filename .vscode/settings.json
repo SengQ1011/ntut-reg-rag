@@ -1,0 +1,28 @@
+{
+  // 專案層級設定：跟著 repo 走，任何人（和 AI）打開都一樣
+
+  // Python 環境：用 uv 建的 .venv（先跑 `uv sync`）
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+
+  // 格式化與 lint：Ruff（規則在 pyproject.toml 的 [tool.ruff]）
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit",
+      "source.fixAll.ruff": "explicit"
+    }
+  },
+  "editor.rulers": [100],
+
+  // 測試：pytest（設定在 pyproject.toml）
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+
+  // 檔案總管隱藏快取
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true
+  }
+}
