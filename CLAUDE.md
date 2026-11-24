@@ -7,6 +7,8 @@
   - ② `regrag.retrieval.search(query, k=10) -> RetrievalResult`
   - ③ `regrag.llm.answer(query, k=5, backend="ollama") -> Answer`
 - 不要修改 schemas.py，除非任務明說要改合約。改合約要開 PR，四人都 review 過才能 merge。
+- 需要改到其他模組時，直接改正確的地方，不要複製函式或繞路包一層補丁；
+  交付時列出改了哪些模組，讓該模組負責人 review。
 - 檢索（斷詞、倒排索引、BM25）必須自己寫，不可用 rank_bm25、Pyserini、LangChain、
   LlamaIndex 替代。rank_bm25 只能出現在 tests/ 當對照。
 - 不要改寫條文原文；Chunk.text 必須和原始檔一致。
