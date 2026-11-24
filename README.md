@@ -23,6 +23,12 @@ uv run pytest
 
 介面合約在 `src/regrag/schemas.py`，假資料在 `tests/fixtures/`。還沒拿到別人的真資料前，先用假資料開發。
 
+## 文件
+
+- [第一週 Kickoff 計畫](docs/kickoff.md)：12/1 MVP 的完成條件、每日分工、風險
+- [dev set 出題與標註準則](eval/guidelines.md)
+- 期末報告、簡報放在組內共用的 Google Drive 資料夾
+
 ## 協作規則
 
 - 不直接推 main，一律開 PR；每個 PR 至少一位其他組員 review，作者要能口頭解釋改了什麼。
