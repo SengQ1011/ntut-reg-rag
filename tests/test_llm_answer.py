@@ -76,6 +76,15 @@ def test_latency_includes_search_time(patch, retrieval: RetrievalResult):
     assert ans.latency_ms >= 50
 
 
+@pytest.mark.parametrize("k", [0, -1])
+def test_k_must_be_positive(patch, retrieval: RetrievalResult, k: int):
+    rec = patch(retrieval)
+    with pytest.raises(ValueError, match="k"):
+        llm.answer("問題", k=k, backend="gemini")
+    assert rec.backends == []
+    assert rec.search_calls == []
+
+
 def test_client_error_raised_before_search(
     patch, monkeypatch: pytest.MonkeyPatch, retrieval: RetrievalResult
 ):
