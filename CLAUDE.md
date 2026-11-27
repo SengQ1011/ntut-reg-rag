@@ -21,7 +21,8 @@
 ## 常用指令（標「未實作」的等對應模組完成）
 - 安裝：uv sync
 - 測試：uv run pytest
-- 重建索引（未實作）：uv run python scripts/build_index.py
+- 重建索引：uv run python scripts/build_index.py
+- 產生 dev set run 檔（bm25 與 baseline）：uv run python scripts/run_retrieval.py
 - 問答（未實作）：uv run python -m regrag.ask "問題"
 - 評估（未實作）：uv run python -m regrag.evaluation.run_eval --run eval/runs/xxx.trec
 
